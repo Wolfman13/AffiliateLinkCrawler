@@ -6,20 +6,23 @@ import org.jsoup.select.Elements;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.Locale;
 import java.util.Set;
 
 public class BasicCrawler implements Runnable {
     private final Set<String> links;
     private final Set<String> affiliateLinks;
+    private final Set<String> blockedDomains;
     private final String firstLink;
     private final String fileName;
 
-    BasicCrawler(Set<String> links, Set<String> affiliateLinks, String firstLink) {
+    BasicCrawler(Set<String> links, Set<String> affiliateLinks, Set<String> blockedDomains, String firstLink) {
         fileName = "./AffiliateLinks.txt";
         this.links = links;
         this.affiliateLinks = affiliateLinks;
         this.firstLink = firstLink;
+        this.blockedDomains = blockedDomains;
     }
 
     @Override
@@ -28,28 +31,20 @@ public class BasicCrawler implements Runnable {
     }
 
     private void getPageLinks(String URL) {
-        // Check if you have already crawled the URLs
         if (!links.contains(URL)) {
             try {
-                if (links.add(URL)) System.out.println("Scanning " + URL + "...");
+                if (links.add(URL)) {
+                    System.out.println("Scanning " + URL + "...");
+                    URL tempURL = new URL(URL);
+                    blockedDomains.add(tempURL.getHost());
+                }
 
-                // Fetch the HTML code.
                 Document document = Jsoup.connect(URL).get();
 
-                document.select("a[href*=google]").remove();
-                document.select("a[href*=facebook]").remove();
-                document.select("a[href*=twitter]").remove();
-                document.select("a[href*=youtube]").remove();
-                document.select("a[href*=twitterstat]").remove();
-                document.select("a[href*=aboutads]").remove();
-                document.select("a[href*=medallia]").remove();
-                document.select("a[href*=networkadvertising]").remove();
-                document.select("a[href*=support]").remove();
+                for (String domain : blockedDomains) document.select("a[href*=" + domain + "]").remove();
 
-                // Parse the HTML to extract links to other URLs
                 Elements linksOnPage = document.select("a[href]");
 
-                // For each extracted URL... go back to Step 4.
                 for (Element page : linksOnPage) {
                     if (page.attr("abs:href").toLowerCase(Locale.ROOT).contains("affiliate") && !affiliateLinks.contains(page.attr("abs:href"))) {
                         System.out.println();

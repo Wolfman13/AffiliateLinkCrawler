@@ -24,9 +24,20 @@ public class Main {
 
         Set<String> links = Collections.synchronizedSet(new HashSet<String>());
         Set<String> affiliateLinks = Collections.synchronizedSet(new HashSet<String>());
+        Set<String> blockedDomains = Collections.synchronizedSet(new HashSet<String>());
         ArrayList<Thread> threads = new ArrayList<>();
 
-        for (String link : startingLinks) threads.add(new Thread(new BasicCrawler(links, affiliateLinks, link)));
+        blockedDomains.add("google");
+        blockedDomains.add("facebook");
+        blockedDomains.add("twitter");
+        blockedDomains.add("youtube");
+        blockedDomains.add("twitterstat");
+        blockedDomains.add("aboutads");
+        blockedDomains.add("medallia");
+        blockedDomains.add("networkadvertising");
+        blockedDomains.add("support");
+
+        for (String link : startingLinks) threads.add(new Thread(new BasicCrawler(links, affiliateLinks, blockedDomains, link)));
         for (Thread thread : threads) thread.start();
 
         for (Thread thread : threads) {
