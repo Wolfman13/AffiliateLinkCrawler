@@ -4,7 +4,7 @@ This project was made within a day for the purpose of crawling the web in search
 
 ## How it works
 
-When compiled (or ran) the program will ask for a bunch of starter links. Each time you enter a new link it will ask for another one. If you press ENTER without adding another link the program will start up. The program doesn't make sure the link you entered is correct and as such it is your responsibility to make sure you enter correct links. The program will spawn a separate thread per link given. The program will print all the links it found, to contain something about "Affiliate", to a text document, in the same directory, called "AffiliateLinks.txt".
+When compiled (or ran) the program will start by trying to open a file called "StartingLinks.txt" (this file should contain all the links you want to crawl), otherwise it will ask you for a bunch of starter links. Each time you enter a new link it will ask for another one. If you press ENTER without adding another link the program will start up. The program doesn't make sure the link you entered is correct and as such it is your responsibility to make sure you enter correct links. The program will spawn a separate thread per link given. The program will print all the links it found, to contain something about "Affiliate", to a text document, in the same directory, called "AffiliateLinks.txt".
 
 ## License
 

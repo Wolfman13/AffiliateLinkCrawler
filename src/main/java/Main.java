@@ -1,4 +1,4 @@
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class Main {
@@ -6,25 +6,35 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         ArrayList<String> startingLinks = new ArrayList<>();
 
-        System.out.println("Enter a link to be crawled or nothing to start the program.");
-        System.out.println("If nothing is entered the program will exit.");
-        System.out.println("Try to keep your amount of links short, as too many might crash the program.");
-        System.out.println();
+        File file = new File("./StartingLinks.txt");
+        if(file.exists()) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    startingLinks.add(line);
+                }
+            } catch (IOException ignored) {}
+        } else {
+            System.out.println("Enter a link to be crawled or nothing to start the program.");
+            System.out.println("If nothing is entered the program will exit.");
+            System.out.println("Try to keep your amount of links short, as too many might crash the program.");
+            System.out.println();
 
-        while (true) {
-            System.out.print("Enter next link: ");
-            String link = scanner.nextLine();
+            while (true) {
+                System.out.print("Enter next link: ");
+                String link = scanner.nextLine();
 
-            if (link.isEmpty()) {
-                break;
+                if (link.isEmpty()) {
+                    break;
+                }
+
+                startingLinks.add(link);
             }
-
-            startingLinks.add(link);
         }
 
-        Set<String> links = Collections.synchronizedSet(new HashSet<String>());
-        Set<String> affiliateLinks = Collections.synchronizedSet(new HashSet<String>());
-        Set<String> blockedDomains = Collections.synchronizedSet(new HashSet<String>());
+        Set<String> links = Collections.synchronizedSet(new HashSet<>());
+        Set<String> affiliateLinks = Collections.synchronizedSet(new HashSet<>());
+        Set<String> blockedDomains = Collections.synchronizedSet(new HashSet<>());
         ArrayList<Thread> threads = new ArrayList<>();
 
         blockedDomains.add("google");

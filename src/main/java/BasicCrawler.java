@@ -33,11 +33,7 @@ public class BasicCrawler implements Runnable {
     private void getPageLinks(String URL) {
         if (!links.contains(URL)) {
             try {
-                if (links.add(URL)) {
-                    System.out.println("Scanning " + URL + "...");
-                    URL tempURL = new URL(URL);
-                    blockedDomains.add(tempURL.getHost());
-                }
+                if (links.add(URL)) System.out.println("Scanning " + URL + "...");
 
                 Document document = Jsoup.connect(URL).get();
 
@@ -50,9 +46,13 @@ public class BasicCrawler implements Runnable {
                         System.out.println();
                         System.out.println("New affiliate link discovered!");
                         System.out.println();
+
                         affiliateLinks.add(page.attr("abs:href"));
                         links.add(page.attr("abs:href"));
                         writeToFile(page.attr("abs:href"));
+
+                        URL tempURL = new URL(URL);
+                        blockedDomains.add(tempURL.getHost());
                     } else {
                         getPageLinks(page.attr("abs:href"));
                     }
