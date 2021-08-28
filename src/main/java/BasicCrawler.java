@@ -31,7 +31,7 @@ public class BasicCrawler implements Runnable {
         // Check if you have already crawled the URLs
         if (!links.contains(URL)) {
             try {
-                links.add(URL);
+                if (links.add(URL)) System.out.println("Scanning " + URL + "...");
 
                 // Fetch the HTML code.
                 Document document = Jsoup.connect(URL).get();
@@ -51,10 +51,9 @@ public class BasicCrawler implements Runnable {
 
                 // For each extracted URL... go back to Step 4.
                 for (Element page : linksOnPage) {
-                    if (page.text().toLowerCase(Locale.ROOT).contains("affiliate") && !affiliateLinks.contains(page.attr("abs:href"))) {
+                    if (page.attr("abs:href").toLowerCase(Locale.ROOT).contains("affiliate") && !affiliateLinks.contains(page.attr("abs:href"))) {
                         System.out.println();
                         System.out.println("New affiliate link discovered!");
-                        System.out.println("Link was marked because it contained: " + page.text());
                         System.out.println();
                         affiliateLinks.add(page.attr("abs:href"));
                         links.add(page.attr("abs:href"));
