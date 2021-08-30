@@ -1,53 +1,58 @@
 import java.io.*;
 import java.util.*;
 
-public class Main {
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        ArrayList<String> startingLinks = new ArrayList<>();
+enum ConfigState {
+    COMMENT,
+    EMPTYLINE,
+    STARTINGLINKS,
+    BLOCKEDDOMAINS,
+    DEPTHLEVEL
+}
 
-        File file = new File("./StartingLinks.txt");
+public class Main {
+    private static ConfigState currentState;
+    private static ArrayList<String> startingLinks;
+    private static Set<String> blockedDomains;
+    private static int depthLevel;
+
+    public static void main(String[] args) {
+        currentState = null;                                                        // The current state of the config.
+        startingLinks = new ArrayList<>();                                          // All the links we want to start of with.
+        blockedDomains = Collections.synchronizedSet(new HashSet<>());              // A set of all the domains we don't want to crawl.
+        depthLevel = -1;                                                            // How deep you want the bot to crawl.
+
+        Set<String> links = Collections.synchronizedSet(new HashSet<>());           // All the links that have been crawled.
+        Set<String> affiliateLinks = Collections.synchronizedSet(new HashSet<>());  // All the affiliate links that have been found.
+        ArrayList<Thread> threads = new ArrayList<>();                              // A list of all threads.
+
+        File file = new File("./config.txt");
         if(file.exists()) {
+            System.out.println("Reading in config.");
+
             try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    startingLinks.add(line);
+                    configReader(line);
                 }
             } catch (IOException ignored) {}
         } else {
-            System.out.println("Enter a link to be crawled or nothing to start the program.");
-            System.out.println("If nothing is entered the program will exit.");
-            System.out.println("Try to keep your amount of links short, as too many might crash the program.");
-            System.out.println();
-
-            while (true) {
-                System.out.print("Enter next link: ");
-                String link = scanner.nextLine();
-
-                if (link.isEmpty()) {
-                    break;
-                }
-
-                startingLinks.add(link);
-            }
+            System.out.println("We could not find a config.txt file in the current directory.");
+            System.exit(0);
         }
 
-        Set<String> links = Collections.synchronizedSet(new HashSet<>());
-        Set<String> affiliateLinks = Collections.synchronizedSet(new HashSet<>());
-        Set<String> blockedDomains = Collections.synchronizedSet(new HashSet<>());
-        ArrayList<Thread> threads = new ArrayList<>();
+        System.out.println("Current config:");
+        System.out.println("Starting links: " + startingLinks);
+        System.out.println("Blocked domains: " + blockedDomains);
 
-        blockedDomains.add("google");
-        blockedDomains.add("facebook");
-        blockedDomains.add("twitter");
-        blockedDomains.add("youtube");
-        blockedDomains.add("twitterstat");
-        blockedDomains.add("aboutads");
-        blockedDomains.add("medallia");
-        blockedDomains.add("networkadvertising");
-        blockedDomains.add("support");
+        if (depthLevel == -1) {
+            System.out.println("Depth level: N/A");
+        } else {
+            System.out.println("Depth level: " + depthLevel);
+        }
 
-        for (String link : startingLinks) threads.add(new Thread(new BasicCrawler(links, affiliateLinks, blockedDomains, link)));
+        System.out.println();
+
+        for (String startingLink : startingLinks) threads.add(new Thread(new BasicCrawler(links, affiliateLinks, blockedDomains, startingLink, depthLevel)));
         for (Thread thread : threads) thread.start();
 
         for (Thread thread : threads) {
@@ -56,6 +61,30 @@ public class Main {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private static void configReader(String line) {
+        // Check the current line to make sure what the current state is.
+        if (line.startsWith("//")) {
+            currentState = ConfigState.COMMENT;
+        } else if (line.isEmpty()) {
+            currentState = ConfigState.EMPTYLINE;
+        } else if (line.equals("# StartingLinks")) {
+            currentState = ConfigState.STARTINGLINKS;
+        } else if (line.equals("# BlockedDomains")) {
+            currentState = ConfigState.BLOCKEDDOMAINS;
+        } else if (line.equals("# DepthLevel")) {
+            currentState = ConfigState.DEPTHLEVEL;
+        }
+
+        // Based on the current state, handle the information.
+        if (currentState == ConfigState.STARTINGLINKS && !line.equals("# StartingLinks")) {
+            startingLinks.add(line);
+        } else if (currentState == ConfigState.BLOCKEDDOMAINS && !line.equals("# BlockedDomains")) {
+            blockedDomains.add(line);
+        } else if (currentState == ConfigState.DEPTHLEVEL && !line.equals("# DepthLevel")) {
+            depthLevel = Integer.parseInt(line);
         }
     }
 }

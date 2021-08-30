@@ -1,0 +1,13 @@
+// This is an example of what your config file should look like.
+
+# StartingLinks
+https://github.com/wolfman13
+https://google.com
+
+# BlockedDomains
+google.com
+facebook.com
+twitter.com
+
+# DepthLevel
+-1
